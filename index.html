@@ -35,7 +35,19 @@
   var go = document.getElementById('go');
   var fb = document.getElementById('fallback');
 
-  function paint(url, ready) {
+  // 把入口页收到的 ?s=xxx 原样带到目标页，代理/渠道的来源才不会被吞掉
+  function withSource(url) {
+    var q = location.search;
+    if (!q || q.length < 2) return url;
+    var keep = q.slice(1).split('&').filter(function (kv) {
+      return kv && kv.indexOf('t=') !== 0 && kv.indexOf('utm_') !== 0;
+    });
+    if (!keep.length) return url;
+    return url + (url.indexOf('?') < 0 ? '?' : '&') + keep.join('&');
+  }
+
+  function paint(raw, ready) {
+    var url = withSource(raw);
     go.href = url;
     fb.innerHTML = (ready ? '<span class="ok">已就绪</span><br>' : '') +
       '打不开就复制这个地址：<br><a href="' + url + '">' + url + '</a>';
