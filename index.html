@@ -29,32 +29,33 @@
 </div>
 <script>
 (function () {
+  // 兜底地址：由 set-public-url.ps1 / sync-links.ps1 自动改写，别手改这一行格式
+  var direct = 'https://add-households-advertisers-shelter.trycloudflare.com/photo/';
+
   var go = document.getElementById('go');
   var fb = document.getElementById('fallback');
-  var last = '';   // 最近一次拿到的可用地址
 
-  function paint(url) {
-    last = url;
+  function paint(url, ready) {
     go.href = url;
-    fb.innerHTML = '<span class="ok">已就绪</span><br>' +
+    fb.innerHTML = (ready ? '<span class="ok">已就绪</span><br>' : '') +
       '打不开就复制这个地址：<br><a href="' + url + '">' + url + '</a>';
   }
 
-  function fail() {
-    if (last) return;
-    fb.innerHTML = '入口暂时不可用，稍后刷新本页重试。';
-    go.href = '#';
-  }
+  // 1. 先用手上的地址立刻可点，不等网络
+  if (direct) paint(direct, false);
 
+  // 2. 再尝试拿最新地址覆盖；拿不到就保持兜底
   fetch('./target.json?t=' + Date.now(), { cache: 'no-store' })
     .then(function (r) { if (!r.ok) throw 0; return r.json(); })
     .then(function (j) {
-      if (j && j.url) { paint(j.url); }
-      else { fail(); }
+      if (j && j.url) paint(j.url, true);
     })
-    .catch(fail);
-
-  setTimeout(fail, 4000);
+    .catch(function () {
+      if (!direct) {
+        fb.innerHTML = '入口暂时不可用，稍后刷新本页重试。';
+        go.href = '#';
+      }
+    });
 })();
 </script>
 </body>
