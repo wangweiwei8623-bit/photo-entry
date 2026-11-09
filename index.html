@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>报名照规格自查 · 入口</title>
+<meta name="description" content="报名照被退回？免费自查本省规格，改不好的我人工帮你看。">
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       font:16px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:#0f1115;color:#e8eaed;padding:24px;box-sizing:border-box}
+  .box{max-width:420px;width:100%;text-align:center}
+  h1{font-size:20px;margin:0 0 8px}
+  p{color:#9aa0a6;font-size:14px;margin:0 0 20px}
+  a.btn{display:block;padding:14px 18px;border-radius:10px;background:#2f6bff;color:#fff;
+        text-decoration:none;font-weight:600;margin-bottom:12px}
+  a.btn:active{transform:scale(.99)}
+  .tip{font-size:12px;color:#6b7280;margin-top:18px;word-break:break-all;line-height:1.8}
+  .tip a{color:#8ab4f8;text-decoration:none}
+  .ok{color:#34d399}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>先看本省报名照规格</h1>
+  <p>免费自查，改不好的我人工帮你看。</p>
+  <a class="btn" id="go" href="#">进入规格自查 →</a>
+  <div class="tip" id="fallback">正在连接…</div>
+</div>
+<script>
+(function () {
+  var go = document.getElementById('go');
+  var fb = document.getElementById('fallback');
+  var last = '';   // 最近一次拿到的可用地址
+
+  function paint(url) {
+    last = url;
+    go.href = url;
+    fb.innerHTML = '<span class="ok">已就绪</span><br>' +
+      '打不开就复制这个地址：<br><a href="' + url + '">' + url + '</a>';
+  }
+
+  function fail() {
+    if (last) return;
+    fb.innerHTML = '入口暂时不可用，稍后刷新本页重试。';
+    go.href = '#';
+  }
+
+  fetch('./target.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (j) {
+      if (j && j.url) { paint(j.url); }
+      else { fail(); }
+    })
+    .catch(fail);
+
+  setTimeout(fail, 4000);
+})();
+</script>
+</body>
+</html>
